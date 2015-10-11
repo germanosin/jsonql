@@ -1,11 +1,11 @@
 package com.github.germanosin.JsonQL.builders;
 
 
-public abstract class ChildrenBuildder extends QueryBuilder {
+public abstract class ChildrenBuilder extends QueryBuilder {
 
     protected BaseQueryBuilder parent;
 
-    public ChildrenBuildder(BaseQueryBuilder parent) {
+    public ChildrenBuilder(BaseQueryBuilder parent) {
         this.parent = parent;
     }
 

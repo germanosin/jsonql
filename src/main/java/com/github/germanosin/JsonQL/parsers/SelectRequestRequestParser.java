@@ -2,10 +2,13 @@ package com.github.germanosin.JsonQL.parsers;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.github.germanosin.JsonQL.arguments.Argument;
+import com.github.germanosin.JsonQL.arguments.BaseArgument;
 import com.github.germanosin.JsonQL.exceptions.WrongFormatException;
-import com.github.germanosin.JsonQL.filters.FieldOperand;
-import com.github.germanosin.JsonQL.filters.FunctionalOperand;
-import com.github.germanosin.JsonQL.forms.*;
+import com.github.germanosin.JsonQL.operands.FieldOperand;
+import com.github.germanosin.JsonQL.operands.FunctionalOperand;
+import com.github.germanosin.JsonQL.operands.SelectList;
+import com.github.germanosin.JsonQL.operands.SelectOperand;
 
 
 import java.util.ArrayList;
@@ -34,7 +37,7 @@ public class SelectRequestRequestParser extends RequestParser {
 
     }
 
-    public SelectRequest parse(JsonNode node) throws WrongFormatException {
+    public SelectList parse(JsonNode node) throws WrongFormatException {
         if(!node.isArray()) throw new WrongFormatException("select request is not an JSON array");
         ArrayNode arrayNode = (ArrayNode)node;
         if(arrayNode.size() < 1) throw new WrongFormatException("there is no fields for selection");
@@ -43,7 +46,7 @@ public class SelectRequestRequestParser extends RequestParser {
         while (iter.hasNext()){
             operands.add(bakeOperator(iter.next()));
         }
-        return new SelectRequest(operands);
+        return new SelectList(operands);
     }
 
     private SelectOperand bakeOperator(JsonNode node) throws WrongFormatException{

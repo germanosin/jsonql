@@ -1,13 +1,13 @@
 package com.github.germanosin.JsonQL.builders;
 
-import com.github.germanosin.JsonQL.forms.Order;
-import com.github.germanosin.JsonQL.forms.OrderList;
+import com.github.germanosin.JsonQL.orders.Order;
+import com.github.germanosin.JsonQL.orders.OrderList;
 
 import java.util.ArrayList;
 import java.util.List;
 
 
-public class OrderBuilder extends ChildrenBuildder{
+public class OrderBuilder extends ChildrenBuilder {
 
     List<Order> orderList;
 

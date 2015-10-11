@@ -1,17 +1,18 @@
-package com.github.germanosin.JsonQL.forms;
+package com.github.germanosin.JsonQL.operands;
 
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.github.germanosin.JsonQL.operands.SelectOperand;
 
 import java.util.List;
 
 
-public class SelectRequest {
+public class SelectList {
     List<SelectOperand> operands;
 
-    public SelectRequest(List<SelectOperand> operands) {
+    public SelectList(List<SelectOperand> operands) {
         this.operands = operands;
     }
 

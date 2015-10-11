@@ -25,4 +25,9 @@ public class IsNullFilter extends Filter {
         node.add(type.toString());
         return null;
     }
+
+    @Override
+    public void accept(FilterVisitor filterVisitor) {
+        filterVisitor.visit(this);
+    }
 }

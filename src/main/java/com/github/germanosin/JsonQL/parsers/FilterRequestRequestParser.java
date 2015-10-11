@@ -2,10 +2,12 @@ package com.github.germanosin.JsonQL.parsers;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.github.germanosin.JsonQL.arguments.Argument;
+import com.github.germanosin.JsonQL.arguments.BaseArgument;
+import com.github.germanosin.JsonQL.builders.Q;
 import com.github.germanosin.JsonQL.exceptions.OperationNotFoundException;
 import com.github.germanosin.JsonQL.exceptions.WrongFormatException;
 import com.github.germanosin.JsonQL.filters.*;
-import com.github.germanosin.JsonQL.forms.*;
 import com.github.germanosin.JsonQL.utils.Json;
 
 import java.util.ArrayList;
@@ -155,9 +157,12 @@ public class FilterRequestRequestParser extends RequestParser {
     private Filter generateInFilter(Filter.Type type, JsonNode node) throws WrongFormatException {
         JsonNode jsonKey = node.get(1);
         if(jsonKey == null) throw new WrongFormatException("filter key is null");
+
         String key = jsonKey.asText();
+
         if(key == null) throw new WrongFormatException("filter key couldn't be parsed as String");
         Filter result;
+
         List<JsonNode> nodes = new ArrayList<JsonNode>();
         Iterator<JsonNode> iter = node.elements();
         iter.next();
@@ -165,7 +170,14 @@ public class FilterRequestRequestParser extends RequestParser {
         while (iter.hasNext()){
             nodes.add(iter.next());
         }
-        result = getArrayFilter(type, key, nodes);
+
+        List array = getArray(key, nodes);
+
+        if (type.equals(Filter.Type.IN)) {
+            result = Q.In(key, array);
+        } else {
+            result = Q.NotIn(key, array);
+        }
 
 
         return result;
@@ -179,11 +191,14 @@ public class FilterRequestRequestParser extends RequestParser {
         while (iter.hasNext()){
             nodes.add(iter.next());
         }
-        result = getArrayFilter(type, key, nodes);
+        List array = getArray(key, nodes);
+
+       result = new BaseFilter(type, key, array);
+
         return result;
     }
 
-    private Filter getArrayFilter(Filter.Type type, String key, List<JsonNode> nodes) throws WrongFormatException {
+    private List getArray(String key, List<JsonNode> nodes) throws WrongFormatException {
         Filter result;
         if(nodes.size() == 0) throw new WrongFormatException("filter value is empty array");
         typeDefinition<?> td = findoutClass(nodes.get(0));
@@ -196,8 +211,7 @@ public class FilterRequestRequestParser extends RequestParser {
             array.add(tdn.value);
         }
 
-        result = new BaseFilter<List<?>>(type, key, array);
-        return result;
+        return array;
     }
 
     private Filter.Type getTypeByString(String operator) throws OperationNotFoundException {

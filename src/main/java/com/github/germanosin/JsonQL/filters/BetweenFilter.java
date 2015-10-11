@@ -64,4 +64,9 @@ public class BetweenFilter<T> extends Filter<T> {
     public void setClazz(Class clazz) {
         this.clazz = clazz;
     }
+
+    @Override
+    public void accept(FilterVisitor filterVisitor) {
+        filterVisitor.visit(this);
+    }
 }

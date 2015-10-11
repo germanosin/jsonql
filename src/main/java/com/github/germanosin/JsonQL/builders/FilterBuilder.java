@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-public class FilterBuilder extends ChildrenBuildder {
+public class FilterBuilder extends ChildrenBuilder {
 
     private List<Filter<?>> filters;
 

@@ -3,8 +3,8 @@ package com.github.germanosin.JsonQL.parsers;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.github.germanosin.JsonQL.exceptions.WrongFormatException;
-import com.github.germanosin.JsonQL.forms.Order;
-import com.github.germanosin.JsonQL.forms.OrderList;
+import com.github.germanosin.JsonQL.orders.Order;
+import com.github.germanosin.JsonQL.orders.OrderList;
 
 import java.util.ArrayList;
 import java.util.Iterator;

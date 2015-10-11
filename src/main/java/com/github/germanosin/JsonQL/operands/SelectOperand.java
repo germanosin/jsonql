@@ -1,4 +1,4 @@
-package com.github.germanosin.JsonQL.forms;
+package com.github.germanosin.JsonQL.operands;
 
 
 import com.fasterxml.jackson.databind.JsonNode;

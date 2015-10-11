@@ -32,4 +32,9 @@ public class CompositeFilter extends Filter {
         }
         return node;
     }
+
+    @Override
+    public void accept(FilterVisitor filterVisitor) {
+        filterVisitor.visit(this);
+    }
 }

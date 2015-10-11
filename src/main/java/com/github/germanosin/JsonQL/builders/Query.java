@@ -2,13 +2,14 @@ package com.github.germanosin.JsonQL.builders;
 
 import com.github.germanosin.JsonQL.filters.CompositeFilter;
 import com.github.germanosin.JsonQL.filters.Filter;
-import com.github.germanosin.JsonQL.forms.*;
+import com.github.germanosin.JsonQL.orders.*;
+import com.github.germanosin.JsonQL.operands.SelectList;
 
 import java.util.ArrayList;
 
 public class Query {
 
-    private  SelectRequest select;
+    private SelectList select;
     private  OrderList order;
     private Filter filter;
     private  Integer limit;
@@ -18,11 +19,11 @@ public class Query {
         filter = new CompositeFilter(Filter.Type.ALL, new ArrayList<Filter<?>>());
     }
 
-    public SelectRequest getSelect() {
+    public SelectList getSelect() {
         return select;
     }
 
-    public void setSelect(SelectRequest select) {
+    public void setSelect(SelectList select) {
         this.select = select;
     }
 

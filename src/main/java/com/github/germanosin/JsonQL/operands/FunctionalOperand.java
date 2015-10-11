@@ -1,11 +1,11 @@
-package com.github.germanosin.JsonQL.filters;
+package com.github.germanosin.JsonQL.operands;
 
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.github.germanosin.JsonQL.forms.Argument;
-import com.github.germanosin.JsonQL.forms.SelectOperand;
+import com.github.germanosin.JsonQL.arguments.Argument;
+import com.github.germanosin.JsonQL.arguments.BaseArgument;
 
 import java.util.List;
 
@@ -49,7 +49,7 @@ public class FunctionalOperand extends SelectOperand {
         return result;
     }
 
-    public List getArguments() {
+    public List<Argument> getArguments() {
         return arguments;
     }
 

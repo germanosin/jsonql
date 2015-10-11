@@ -3,7 +3,8 @@ package com.github.germanosin.JsonQL.filters;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.github.germanosin.JsonQL.forms.Argument;
+import com.github.germanosin.JsonQL.arguments.Argument;
+import com.github.germanosin.JsonQL.arguments.BaseArgument;
 import com.github.germanosin.JsonQL.utils.Json;
 
 
@@ -48,5 +49,10 @@ public class FunctionFilter extends Filter {
 
     public void setFunctionName(String functionName) {
         this.functionName = functionName;
+    }
+
+    @Override
+    public void accept(FilterVisitor filterVisitor) {
+        filterVisitor.visit(this);
     }
 }

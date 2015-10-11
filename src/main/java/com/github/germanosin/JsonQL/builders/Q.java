@@ -1,7 +1,11 @@
 package com.github.germanosin.JsonQL.builders;
 
+import com.github.germanosin.JsonQL.arguments.Argument;
+import com.github.germanosin.JsonQL.arguments.BaseArgument;
+import com.github.germanosin.JsonQL.arguments.FunctionalArgument;
+import com.github.germanosin.JsonQL.arguments.VarArgument;
 import com.github.germanosin.JsonQL.filters.*;
-import com.github.germanosin.JsonQL.forms.*;
+import com.github.germanosin.JsonQL.orders.*;
 
 import java.util.Arrays;
 import java.util.List;
@@ -9,19 +13,24 @@ import java.util.List;
 
 public class Q {
 
-    public static FunctionalArgument Function(String functionName, Argument ... args) {
-        FunctionalArgument arg = new FunctionalArgument(functionName, Arrays.asList(args));
-        return arg;
+    public static FunctionalArgument Function(String functionName, Argument... args) {
+        return new FunctionalArgument(functionName, Arrays.asList(args));
     }
 
-    public static  Argument Field(String fieldName) {
-        Argument<String> argument = new Argument(fieldName, Argument.Type.FIELD);
-        return argument;
+    public static VarArgument Field(String fieldName) {
+        return new VarArgument(fieldName);
     }
 
-    public static  <T> Argument Value(T value) {
-        Argument<T> argument = new Argument(value, Argument.Type.BASE);
-        return argument;
+    public static  <T> BaseArgument Value(T value) {
+        return new BaseArgument <T> (value, BaseArgument.Type.BASE);
+    }
+
+    public static Argument Value(String value) {
+        if (value.startsWith("$")) {
+            return new VarArgument(value.substring(1));
+        } else{
+            return new BaseArgument(value, Argument.Type.BASE);
+        }
     }
 
     public static <T> BaseFilter Eq(String fieldName, T value){
@@ -48,12 +57,28 @@ public class Q {
         return new BaseFilter<T>(Filter.Type.NOT_EQUALS, fieldName, value);
     }
 
-    public static <T> BaseFilter In(String fieldName, T ... values){
-        return new BaseFilter <List<T>> (Filter.Type.IN, fieldName, Arrays.asList(values));
+    public static <T> InFilter In(String fieldName, T ... values){
+        return new InFilter<T> (fieldName, Arrays.asList(values), false);
     }
 
-    public static <T> BaseFilter NotIn(String fieldName, T ... values){
-        return new BaseFilter <List<T>> (Filter.Type.NOT_IN, fieldName, Arrays.asList(values));
+    public static <T> InFilter NotIn(String fieldName, T ... values){
+        return new InFilter<T> (fieldName, Arrays.asList(values), true);
+    }
+
+    public static <T> InFilter In(String fieldName, List<T> values){
+        return new InFilter<T> (fieldName, values, false);
+    }
+
+    public static <T> InFilter NotIn(String fieldName, List<T> values){
+        return new InFilter<T> (fieldName, values, true);
+    }
+
+    public static <T> InFilter InList(String fieldName, List<T> values){
+        return new InFilter<T> (fieldName, values, false);
+    }
+
+    public static <T> InFilter NotInList(String fieldName, List<T> values){
+        return new InFilter<T> (fieldName, values, true);
     }
 
     public static IsNullFilter IsNull(String fieldName){
@@ -92,8 +117,12 @@ public class Q {
         return new CompositeFilter(Filter.Type.NONE, Arrays.asList(filters));
     }
 
-    public static FunctionFilter Func(String functionName, Argument ... arguments){
+    public static FunctionFilter Func(String functionName, Argument... arguments){
         return new FunctionFilter(Filter.Type.FUNCTION, functionName, Arrays.asList(arguments));
+    }
+
+    public static FunctionFilter Func(String functionName,List<Argument> arguments){
+        return new FunctionFilter(Filter.Type.FUNCTION, functionName, arguments);
     }
 
     public static Order Asc(String fieldName) {

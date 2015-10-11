@@ -60,4 +60,6 @@ public abstract class Filter<T> {
 
     public abstract JsonNode toJson();
 
+    public abstract void accept(FilterVisitor filterVisitor);
+
 }

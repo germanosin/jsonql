@@ -49,21 +49,20 @@ public class BaseFilter<T> extends Filter<T> {
         JsonNode valueJson = Json.toJson(this.value);
         node.add(type.toString());
         node.add(key);
-        if(type.equals(Type.IN) || type.equals(Type.NOT_IN)){
-            List vals = (List)value;
-            for(Object obj:vals){
-                node.add(Json.toJson(obj));
-            }
-        } else {
-            if(clazz != null){
-                node.add(valueJson);
-            }
-            else{
-                node.add(NullNode.getInstance());
-            }
 
+        if(clazz != null){
+            node.add(valueJson);
+        }
+        else{
+            node.add(NullNode.getInstance());
         }
 
         return node;
     }
+
+    @Override
+    public void accept(FilterVisitor filterVisitor) {
+        filterVisitor.visit(this);
+    }
+
 }

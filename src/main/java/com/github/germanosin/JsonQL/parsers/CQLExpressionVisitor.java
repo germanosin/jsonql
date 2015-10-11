@@ -1,7 +1,9 @@
 package com.github.germanosin.JsonQL.parsers;
 
+import com.github.germanosin.JsonQL.arguments.Argument;
 import com.github.germanosin.JsonQL.builders.Q;
 import com.github.germanosin.JsonQL.exceptions.CQLParserException;
+import com.github.germanosin.JsonQL.exceptions.CQLUnsupportedException;
 import com.github.germanosin.JsonQL.filters.BaseFilter;
 import com.github.germanosin.JsonQL.filters.Filter;
 import net.sf.jsqlparser.expression.*;
@@ -18,6 +20,8 @@ import java.util.List;
 
 public class CQLExpressionVisitor implements ExpressionVisitor, ItemsListVisitor {
     private List<Filter<?>> filters = new ArrayList<Filter<?>>();
+
+    boolean right = false;
 
     Object value;
 
@@ -41,7 +45,7 @@ public class CQLExpressionVisitor implements ExpressionVisitor, ItemsListVisitor
 
     @Override
     public void visit(Function function) {
-
+        throw new CQLUnsupportedException("function");
     }
 
     @Override
@@ -52,12 +56,12 @@ public class CQLExpressionVisitor implements ExpressionVisitor, ItemsListVisitor
 
     @Override
     public void visit(JdbcParameter jdbcParameter) {
-
+        throw new CQLUnsupportedException("jdbcParameter");
     }
 
     @Override
     public void visit(JdbcNamedParameter jdbcNamedParameter) {
-
+        throw new CQLUnsupportedException("jdbcNamedParameter");
     }
 
 
@@ -95,33 +99,38 @@ public class CQLExpressionVisitor implements ExpressionVisitor, ItemsListVisitor
 
     @Override
     public void visit(Parenthesis parenthesis) {
-
+        throw new CQLUnsupportedException("parenthesis");
     }
 
 
     @Override
     public void visit(StringValue stringValue) {
-        value = stringValue.getValue();
+        String value = stringValue.getValue();
+        if (value.startsWith("$")) {
+            this.value = Q.Value(stringValue);
+        } else {
+            this.value = stringValue;
+        }
     }
 
     @Override
     public void visit(Addition addition) {
-
+        throw new CQLUnsupportedException("addition");
     }
 
     @Override
     public void visit(Division division) {
-
+        throw new CQLUnsupportedException("division");
     }
 
     @Override
     public void visit(Multiplication multiplication) {
-
+        throw new CQLUnsupportedException("multiplication");
     }
 
     @Override
     public void visit(Subtraction subtraction) {
-
+        throw new CQLUnsupportedException("subtraction");
     }
 
 
@@ -214,13 +223,26 @@ public class CQLExpressionVisitor implements ExpressionVisitor, ItemsListVisitor
     }
 
     public void parseSimple(BinaryExpression expression, Filter.Type type) {
-        expression.getLeftExpression().accept(this);
+        acceptLeft(expression.getLeftExpression());
         Object left = value;
         if (left instanceof String) {
-            expression.getRightExpression().accept(this);
+            acceptRight(expression.getRightExpression());
             Object right = value;
             this.filters.add(new BaseFilter(type, (String)left, right));
         }
+    }
+
+    protected void acceptRight(Expression expression) {
+        this.right = true;
+        expression.accept(this);
+        this.right = false;
+    }
+
+    protected void acceptLeft(Expression expression) {
+        boolean right = this.right;
+        this.right = false;
+        expression.accept(this);
+        this.right = right;
     }
 
     @Override
@@ -232,8 +254,11 @@ public class CQLExpressionVisitor implements ExpressionVisitor, ItemsListVisitor
         if (field instanceof String) {
             inExpression.getRightItemsList().accept(this);
 
-            Filter.Type type = inExpression.isNot() ? Filter.Type.NOT_IN : Filter.Type.IN;
-            this.filters.add(new BaseFilter(type, (String)field, inValues));
+            if (inExpression.isNot()) {
+                this.filters.add(Q.NotInList((String)field, inValues));
+            } else {
+                this.filters.add(Q.InList((String)field, inValues));
+            }
         }
     }
 
@@ -263,13 +288,17 @@ public class CQLExpressionVisitor implements ExpressionVisitor, ItemsListVisitor
         } else if (column.getColumnName().equals("false")) {
             value = false;
         } else {
-            value = column.getFullyQualifiedName();
+            if (!this.right) {
+                value = column.getFullyQualifiedName();
+            } else {
+                value = Q.Value(column.getFullyQualifiedName());
+            }
         }
     }
 
     @Override
     public void visit(SubSelect subSelect) {
-
+        throw new CQLUnsupportedException("subSelect");
     }
 
     @Override
@@ -284,136 +313,147 @@ public class CQLExpressionVisitor implements ExpressionVisitor, ItemsListVisitor
 
     @Override
     public void visit(MultiExpressionList multiExpressionList) {
-
+        throw new CQLUnsupportedException("multiExpressionList");
     }
 
     @Override
     public void visit(CaseExpression caseExpression) {
-
+        throw new CQLUnsupportedException("caseExpression");
     }
 
     @Override
     public void visit(WhenClause whenClause) {
-
+        throw new CQLUnsupportedException("whenClause");
     }
 
     @Override
     public void visit(ExistsExpression existsExpression) {
-
+        throw new CQLUnsupportedException("exists");
     }
 
     @Override
     public void visit(AllComparisonExpression allComparisonExpression) {
-
+        throw new CQLUnsupportedException("all");
     }
 
     @Override
     public void visit(AnyComparisonExpression anyComparisonExpression) {
-
+        throw new CQLUnsupportedException("any");
     }
 
     @Override
     public void visit(Concat concat) {
-        concat.getLeftExpression().accept(this);
-        String left = (String)value;
+        List<Argument> arguments = new ArrayList<Argument>();
 
-        concat.getRightExpression().accept(this);
-        value = left + (String)value;
+        this.applyConcat(concat.getLeftExpression(), arguments);
+        this.applyConcat(concat.getRightExpression(), arguments);
+
+        this.value = Q.Func("concat", arguments);
+    }
+
+    public void applyConcat(Expression expression, List<Argument> arguments) {
+        if (expression instanceof Concat) {
+            applyConcat(((Concat) expression).getLeftExpression(), arguments);
+            applyConcat(((Concat) expression).getRightExpression(), arguments);
+        } else {
+            expression.accept(this);
+            arguments.add( Q.Value(value));
+        }
     }
 
     @Override
     public void visit(Matches matches) {
-
+        throw new CQLUnsupportedException("matches");
     }
 
     @Override
     public void visit(BitwiseAnd bitwiseAnd) {
-
+        throw new CQLUnsupportedException("bitwiseAnd");
     }
 
     @Override
     public void visit(BitwiseOr bitwiseOr) {
-
+        throw new CQLUnsupportedException("bitwiseOr");
     }
 
     @Override
     public void visit(BitwiseXor bitwiseXor) {
-
+        throw new CQLUnsupportedException("bitwiseXor");
     }
 
     @Override
     public void visit(CastExpression castExpression) {
-
+        throw new CQLUnsupportedException("castExpression");
     }
 
     @Override
     public void visit(Modulo modulo) {
-
+        throw new CQLUnsupportedException("modulo");
     }
 
     @Override
     public void visit(AnalyticExpression analyticExpression) {
-
+        throw new CQLUnsupportedException("analyticExpression");
     }
 
     @Override
     public void visit(WithinGroupExpression withinGroupExpression) {
-
+        throw new CQLUnsupportedException("withinGroupExpression");
     }
 
     @Override
     public void visit(ExtractExpression extractExpression) {
-
+        throw new CQLUnsupportedException("extractExpression");
     }
 
     @Override
     public void visit(IntervalExpression intervalExpression) {
-
+        throw new CQLUnsupportedException("intervalExpression");
     }
 
     @Override
     public void visit(OracleHierarchicalExpression oracleHierarchicalExpression) {
-
+        throw new CQLUnsupportedException("oracleHierarchical");
     }
 
     @Override
     public void visit(RegExpMatchOperator regExpMatchOperator) {
-
+        throw new CQLUnsupportedException("regExpMatch");
     }
 
     @Override
     public void visit(JsonExpression jsonExpression) {
-
+        throw new CQLUnsupportedException("jsonExpression");
     }
 
     @Override
     public void visit(RegExpMySQLOperator regExpMySQLOperator) {
-
+        throw new CQLUnsupportedException("regExpMySQL");
     }
 
     @Override
     public void visit(UserVariable userVariable) {
-
+        throw new CQLUnsupportedException("userVariable");
     }
 
     @Override
     public void visit(NumericBind numericBind) {
-
+        throw new CQLUnsupportedException("numericBind");
     }
 
     @Override
     public void visit(KeepExpression keepExpression) {
-
+        throw new CQLUnsupportedException("keepExpression");
     }
 
     @Override
     public void visit(MySQLGroupConcat mySQLGroupConcat) {
-
+        throw new CQLUnsupportedException("mySQLGroupConcat");
     }
 
     @Override
     public void visit(RowConstructor rowConstructor) {
-
+        throw new CQLUnsupportedException("rowConstructor");
     }
 
     public Filter filter() throws CQLParserException {

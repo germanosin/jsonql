@@ -2,9 +2,10 @@ package com.github.germanosin.JsonQL.parsers;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.github.germanosin.JsonQL.arguments.Argument;
+import com.github.germanosin.JsonQL.arguments.BaseArgument;
 import com.github.germanosin.JsonQL.exceptions.WrongFormatException;
-import com.github.germanosin.JsonQL.forms.Argument;
-import com.github.germanosin.JsonQL.filters.FunctionalArgument;
+import com.github.germanosin.JsonQL.arguments.FunctionalArgument;
 
 
 import java.util.ArrayList;
@@ -45,8 +46,8 @@ public abstract class RequestParser {
         }
     }
 
-    protected Argument prepareArguments(JsonNode n) throws WrongFormatException {
-        Argument arg;
+    protected BaseArgument prepareArguments(JsonNode n) throws WrongFormatException {
+        BaseArgument arg;
         if(n.isArray() && n.get(0).isTextual() && n.get(0).asText().startsWith("@")){
             String funcName = n.get(0).asText().substring(1);
             List<Argument> args = new ArrayList<Argument>();
@@ -62,9 +63,9 @@ public abstract class RequestParser {
         } else{
             typeDefinition def = findoutClass(n);
             if(def.clazz.equals(String.class) && ((String)def.value).startsWith("$")){
-                arg = new Argument<String>(((String) def.value).substring(1), Argument.Type.FIELD);
+                arg = new BaseArgument<String>(((String) def.value).substring(1), BaseArgument.Type.FIELD);
             } else{
-                arg = new Argument(def.value, Argument.Type.BASE);
+                arg = new BaseArgument(def.value, BaseArgument.Type.BASE);
             }
 
         }
