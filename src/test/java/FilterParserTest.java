@@ -1,5 +1,6 @@
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.github.germanosin.JsonQL.arguments.BaseArgument;
 import com.github.germanosin.JsonQL.builders.CQLBuilder;
 import com.github.germanosin.JsonQL.builders.Q;
 import com.github.germanosin.JsonQL.builders.Query;
@@ -10,7 +11,7 @@ import com.github.germanosin.JsonQL.filters.Filter;
 import com.github.germanosin.JsonQL.filters.InFilter;
 import com.github.germanosin.JsonQL.operands.SelectList;
 import com.github.germanosin.JsonQL.parsers.CQLParser;
-import com.github.germanosin.JsonQL.parsers.FilterRequestRequestParser;
+import com.github.germanosin.JsonQL.parsers.FilterParser;
 import com.github.germanosin.JsonQL.utils.Json;
 import com.github.germanosin.JsonQL.parsers.OrderRequestParser;
 import com.github.germanosin.JsonQL.parsers.SelectRequestRequestParser;
@@ -21,7 +22,6 @@ import net.sf.jsqlparser.JSQLParserException;
 import org.junit.Test;
 
 
-import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.Assert.*;
@@ -36,12 +36,12 @@ public class FilterParserTest {
     public void simpleParserTest() throws WrongFormatException, OperationNotFoundException {
 
         JsonNode node = Json.parse("[\"==\", \"class\", \"street_limited\"]");
-        FilterRequestRequestParser parser = FilterRequestRequestParser.getInstance();
+        FilterParser parser = FilterParser.getInstance();
         Filter filter = parser.parse(node);
         assertTrue(filter.getType().equals(Filter.Type.EQUALS));
         assertTrue(((BaseFilter)filter).getKey().equals("class"));
         assertTrue(((BaseFilter)filter).getValue().equals("street_limited"));
-        assertTrue(((BaseFilter)filter).getValue() instanceof String);
+        assertTrue(((BaseFilter)filter).getValue() instanceof BaseArgument);
 
         JsonNode generatedJson = filter.toJson();
         assertNotNull(generatedJson);
@@ -50,7 +50,7 @@ public class FilterParserTest {
         assertTrue(generatedJson.get(2).asText().equals("street_limited"));
 
         JsonNode node1 = Json.parse("[\"==\", \"array\", [\"street_limited\", \"123\"]]");
-        FilterRequestRequestParser parser1 = FilterRequestRequestParser.getInstance();
+        FilterParser parser1 = FilterParser.getInstance();
         Filter filter1 = parser1.parse(node1);
         assertTrue(filter1.getType().equals(Filter.Type.EQUALS));
         assertTrue(((BaseFilter)filter1).getKey().equals("array"));
@@ -69,7 +69,7 @@ public class FilterParserTest {
     @Test
     public void simpleInParserTest() throws WrongFormatException, OperationNotFoundException {
         JsonNode node = Json.parse("[\"in\", \"array\",  1, 2, 3, 4, 887 ]");
-        FilterRequestRequestParser parser = FilterRequestRequestParser.getInstance();
+        FilterParser parser = FilterParser.getInstance();
         Filter filter = parser.parse(node);
         assertTrue(filter.getType().equals(Filter.Type.IN));
         assertTrue(((InFilter)filter).getKey().equals("array"));
@@ -84,7 +84,7 @@ public class FilterParserTest {
         assertTrue(generatedJson.get(3).asInt() == 2);
 
         JsonNode node2 = Json.parse("[\"!in\", \"array\",  \"121\", \"валенок\"]");
-        FilterRequestRequestParser parser2 = FilterRequestRequestParser.getInstance();
+        FilterParser parser2 = FilterParser.getInstance();
 
         Filter filter2 = parser2.parse(node2);
         assertTrue(filter2.getType().equals(Filter.Type.NOT_IN));
@@ -118,7 +118,7 @@ public class FilterParserTest {
                 "      [\"@within\", \"$geom\", [\"@bbox\", 44,55,50,60]],\n" +
                 "      [\"!in\", \"category.id\", 1, 2, 4]\n" +
                 "    ]");
-        FilterRequestRequestParser parser = FilterRequestRequestParser.getInstance();
+        FilterParser parser = FilterParser.getInstance();
 
         Filter filter = parser.parse(node);
         assertNotNull(filter);
@@ -203,6 +203,16 @@ public class FilterParserTest {
     @Test
     public void cqlParserTestCONCAT() throws CQLParserException, JSQLParserException {
         String startFilter = "admin = \"name\" || \"like\" || \"this\"";
+        Filter filter = CQLParser.getInstance().parse(startFilter);
+        assertNotNull(filter);
+        assertEquals(filter.getType(), Filter.Type.EQUALS);
+        String cqlFilter = CQLBuilder.fromFilter(filter);
+        assertEquals(startFilter, cqlFilter);
+    }
+
+    @Test
+    public void cqlParserTestFunction() throws CQLParserException, JSQLParserException {
+        String startFilter = "admin = 'name' || \"like\" || 'this'";
         Filter filter = CQLParser.getInstance().parse(startFilter);
         assertNotNull(filter);
         assertEquals(filter.getType(), Filter.Type.EQUALS);

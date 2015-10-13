@@ -37,6 +37,17 @@ public class BaseArgument<T> implements Argument<T> {
     }
 
     public String toString() {
-        return (String)value;
+        return value.toString();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj.getClass().equals(value.getClass())) {
+            return obj.equals(value);
+        } else if (obj instanceof BaseArgument) {
+            return ((BaseArgument) obj).getValue().equals(value) && ((BaseArgument) obj).getType().equals(getType());
+        } else {
+            return super.equals(obj);
+        }
     }
 }

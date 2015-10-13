@@ -3,12 +3,12 @@ package com.github.germanosin.JsonQL.parsers;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.github.germanosin.JsonQL.arguments.Argument;
-import com.github.germanosin.JsonQL.arguments.BaseArgument;
 import com.github.germanosin.JsonQL.builders.Q;
 import com.github.germanosin.JsonQL.exceptions.OperationNotFoundException;
 import com.github.germanosin.JsonQL.exceptions.WrongFormatException;
 import com.github.germanosin.JsonQL.filters.*;
 import com.github.germanosin.JsonQL.utils.Json;
+import com.sun.org.apache.xpath.internal.Arg;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -16,22 +16,22 @@ import java.util.Iterator;
 import java.util.List;
 
 
-public class FilterRequestRequestParser extends RequestParser {
+public class FilterParser extends RequestParser {
 
-    private static FilterRequestRequestParser instance = null;
+    private static FilterParser instance = null;
 
-    public static FilterRequestRequestParser getInstance(){
+    public static FilterParser getInstance(){
         if(instance == null){
-            synchronized (FilterRequestRequestParser.class){
+            synchronized (FilterParser.class){
                 if(instance == null){
-                    instance = new FilterRequestRequestParser();
+                    instance = new FilterParser();
                 }
             }
         }
         return instance;
     }
 
-    private FilterRequestRequestParser() {
+    private FilterParser() {
 
     }
 
@@ -123,7 +123,7 @@ public class FilterRequestRequestParser extends RequestParser {
         iter.next();
         while (iter.hasNext()){
             JsonNode n = iter.next();
-            FilterRequestRequestParser parser = FilterRequestRequestParser.getInstance();
+            FilterParser parser = FilterParser.getInstance();
             Filter<?> f = parser.parse(n);
             nodes.add(f);
         }
@@ -142,7 +142,7 @@ public class FilterRequestRequestParser extends RequestParser {
         if(key == null) throw new WrongFormatException("filter key couldn't be parsed as String");
         if(jsonValue == null) throw new WrongFormatException("filter value is null");
         Filter result;
-        if(jsonValue.isTextual()) result = new BaseFilter<String>(type, key, jsonValue.asText());
+        if(jsonValue.isTextual()) result = new BaseFilter<Argument<String>>(type, key, Q.Arg(jsonValue.asText()));
         else if(jsonValue.isInt()) result = new BaseFilter<Integer>(type, key, jsonValue.asInt());
         else if(jsonValue.isLong()) result = new BaseFilter<Long>(type, key, jsonValue.asLong());
         else if(jsonValue.isBoolean()) result = new BaseFilter<Boolean>(type, key, jsonValue.asBoolean());
@@ -153,6 +153,7 @@ public class FilterRequestRequestParser extends RequestParser {
         else throw new WrongFormatException("couldn't parse value");
         return result;
     }
+
 
     private Filter generateInFilter(Filter.Type type, JsonNode node) throws WrongFormatException {
         JsonNode jsonKey = node.get(1);
@@ -171,7 +172,7 @@ public class FilterRequestRequestParser extends RequestParser {
             nodes.add(iter.next());
         }
 
-        List array = getArray(key, nodes);
+        List<Argument> array = getArray(key, nodes);
 
         if (type.equals(Filter.Type.IN)) {
             result = Q.In(key, array);

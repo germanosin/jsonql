@@ -1,11 +1,9 @@
 package com.github.germanosin.JsonQL.builders;
 
-import com.github.germanosin.JsonQL.arguments.Argument;
-import com.github.germanosin.JsonQL.arguments.BaseArgument;
-import com.github.germanosin.JsonQL.arguments.FunctionalArgument;
-import com.github.germanosin.JsonQL.arguments.VarArgument;
+import com.github.germanosin.JsonQL.arguments.*;
 import com.github.germanosin.JsonQL.filters.*;
 import com.github.germanosin.JsonQL.orders.*;
+import com.sun.org.apache.xpath.internal.Arg;
 
 import java.util.Arrays;
 import java.util.List;
@@ -17,20 +15,26 @@ public class Q {
         return new FunctionalArgument(functionName, Arrays.asList(args));
     }
 
-    public static VarArgument Field(String fieldName) {
-        return new VarArgument(fieldName);
+    public static FieldArgument Field(String fieldName) {
+        return new FieldArgument(fieldName);
+    }
+
+    public static VarArgument Var(String varName) {
+        return new VarArgument(varName);
+    }
+
+    public static Argument<String> Arg(String name) {
+        if (name.startsWith("$")) {
+            return Var(name.substring(1));
+        } else if (name.startsWith("&")) {
+            return Field(name.substring(1));
+        } else {
+            return Value(name);
+        }
     }
 
     public static  <T> BaseArgument Value(T value) {
         return new BaseArgument <T> (value, BaseArgument.Type.BASE);
-    }
-
-    public static Argument Value(String value) {
-        if (value.startsWith("$")) {
-            return new VarArgument(value.substring(1));
-        } else{
-            return new BaseArgument(value, Argument.Type.BASE);
-        }
     }
 
     public static <T> BaseFilter Eq(String fieldName, T value){

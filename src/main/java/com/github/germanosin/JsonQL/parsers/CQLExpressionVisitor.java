@@ -6,6 +6,7 @@ import com.github.germanosin.JsonQL.exceptions.CQLParserException;
 import com.github.germanosin.JsonQL.exceptions.CQLUnsupportedException;
 import com.github.germanosin.JsonQL.filters.BaseFilter;
 import com.github.germanosin.JsonQL.filters.Filter;
+import com.github.germanosin.JsonQL.utils.StringUtils;
 import net.sf.jsqlparser.expression.*;
 import net.sf.jsqlparser.expression.operators.arithmetic.*;
 import net.sf.jsqlparser.expression.operators.conditional.AndExpression;
@@ -291,7 +292,13 @@ public class CQLExpressionVisitor implements ExpressionVisitor, ItemsListVisitor
             if (!this.right) {
                 value = column.getFullyQualifiedName();
             } else {
-                value = Q.Value(column.getFullyQualifiedName());
+                String fieldName = StringUtils.strip(column.getFullyQualifiedName(), "\"");
+                if (!fieldName.startsWith("$")) {
+                    value = Q.Field(fieldName);
+                } else {
+                    value = Q.Var(fieldName.substring(1));
+                }
+
             }
         }
     }
@@ -357,7 +364,11 @@ public class CQLExpressionVisitor implements ExpressionVisitor, ItemsListVisitor
             applyConcat(((Concat) expression).getRightExpression(), arguments);
         } else {
             expression.accept(this);
-            arguments.add( Q.Value(value));
+            if (value!=null && value instanceof Argument) {
+                arguments.add((Argument)value);
+            } else {
+                arguments.add(Q.Value(value));
+            }
         }
     }
 

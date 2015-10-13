@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.NullNode;
+import com.github.germanosin.JsonQL.arguments.Argument;
 import com.github.germanosin.JsonQL.utils.Json;
 import java.util.List;
 
@@ -46,8 +47,14 @@ public class BaseFilter<T> extends Filter<T> {
         ObjectMapper mapper = new ObjectMapper();
         ObjectWriter writer = mapper.writer();
         ArrayNode node = mapper.createArrayNode();
-        JsonNode valueJson = Json.toJson(this.value);
+        JsonNode valueJson;
+        if (value!=null && value instanceof Argument) {
+            valueJson = ((Argument) value).toJson();
+        } else {
+            valueJson = Json.toJson(this.value);
+        }
         node.add(type.toString());
+
         node.add(key);
 
         if(clazz != null){

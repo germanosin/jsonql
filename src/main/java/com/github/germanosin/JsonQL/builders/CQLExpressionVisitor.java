@@ -17,7 +17,14 @@ public class CQLExpressionVisitor implements FilterVisitor,ArgumentVisitor {
 
     @Override
     public void visit(VarArgument varArgument) {
-        sb.append(varArgument.getValue());
+        sb.append(varArgument.toString());
+    }
+
+    @Override
+    public void visit(FieldArgument fieldArgument) {
+        sb.append("\"");
+        sb.append(fieldArgument.getValue());
+        sb.append("\"");
     }
 
     @Override

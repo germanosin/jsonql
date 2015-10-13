@@ -6,5 +6,6 @@ package com.github.germanosin.JsonQL.arguments;
 public interface ArgumentVisitor {
     void visit(BaseArgument baseArgument);
     void visit(VarArgument varArgument);
+    void visit(FieldArgument fieldArgument);
     void visit(FunctionalArgument functionalArgument);
 }
